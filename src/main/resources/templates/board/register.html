@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/basicLayout.html}">
+
+<div layout:fragment="content">
+    <h1>Board Register</h1>
+
+        <form id="form1" method="post" enctype="multipart/form-data">
+
+            <input type="text" name="title">
+
+            <input type="text" name="content">
+
+            <input type="text" name="writer" th:value="${#authentication.principal.username}" readonly>
+
+            <input type="text" name="tag">
+
+            <input type="file" name="images" multiple>
+
+            <button class="submitBtn">CLICK</button>
+
+        </form>
+</div>
+
+
+<script th:inline="javascript" layout:fragment="script">
+
+    // 로그인 된 사용자 정보 확인
+    const auth = [[ ${#authentication.principal} ]]
+    console.log(auth)
+
+
+    const form1 = document.querySelector("#form1")
+
+    document.querySelector(".submitBtn").addEventListener("click", e => {
+
+        e.preventDefault(); // 버튼 클릭 시 submit 하지 않게 막는다
+
+        form1.submit();
+
+        form1.reset();
+
+    }, false) // 캡쳐링만 지원
+
+</script>
+</html>

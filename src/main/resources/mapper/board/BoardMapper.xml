@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.sociallogin.mapper.BoardMapper">
+
+    <insert id="insert">
+        <selectKey order="AFTER" resultType="long" keyProperty="bno" >
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+
+        insert into tbl_board (title,content,writer,tag)
+        values ( #{title}, #{content}, #{writer}, #{tag})
+    </insert>
+
+    <insert id="insertAttach">
+        insert into tbl_board_attach (bno,fileName,ord)
+        values (#{bno}, #{fileName}, #{ord})
+    </insert>
+
+    <sql id="search">
+        <foreach item="type" collection="arr" open="AND (" close=")" separator="OR">
+            <if test='type.equals("T")'>
+                title like concat('%', #{keyword}, '%')
+            </if>
+            <if test='type.equals("C")'>
+                content like concat('%', #{keyword}, '%')
+            </if>
+            <if test='type.equals("W")'>
+                writer like concat('%', #{keyword}, '%')
+            </if>
+        </foreach>
+    </sql>
+
+
+    <select id="listImage" resultType="BoardListDTO">
+        select
+        board.bno, title, writer, regDate, modDate,
+        replyCnt, fileName, viewCnt
+        from
+        tbl_board board left join tbl_board_attach attach on attach.bno = board.bno
+        where (attach.ord = 0 or attach.ord is null)
+
+        <include refid="search"></include>
+
+        order by board.bno desc
+        limit #{skip}, #{size}
+    </select>
+
+    <select id="count" resultType="int">
+        select count(bno) from tbl_board where bno > 0
+        <include refid="search"></include>
+    </select>
+
+    <resultMap id="readMap" type="BoardReadDTO">
+        <id property="bno" column="bno"></id>
+        <result property="title" column="title"></result>
+        <result property="content" column="content"></result>
+        <result property="writer" column="writer"></result>
+        <collection property="fileNames" resultMap="fileNameMap"></collection>
+    </resultMap>
+
+    <resultMap id="fileNameMap" type="string">
+        <result column="fileName"></result>
+    </resultMap>
+
+    <select id="select" resultMap="readMap">
+        select
+        b.bno, b.title, b.content, b.writer, b.regDate,
+        b.modDate, a.fileName
+        from tbl_board b left join tbl_board_attach a on a.bno = b.bno
+        where b.bno = #{bno}
+        order by a.ord asc
+    </select>
+</mapper>
